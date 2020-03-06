@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:quizzler/QuizBrain.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 void main() => runApp(Quizzler());
 
@@ -24,9 +26,38 @@ class QuizPage extends StatefulWidget {
   _QuizPageState createState() => _QuizPageState();
 }
 
+var quizBrain = QuizBrain();
+
 class _QuizPageState extends State<QuizPage> {
+  Icon correctAns = Icon(
+    Icons.check,
+    color: Colors.green,
+  );
+  Icon wrongAns = Icon(
+    Icons.close,
+    color: Colors.red,
+  );
+  List<Icon> scoreKeeper = [];
   @override
   Widget build(BuildContext context) {
+    void checkAns(bool ans) {
+      setState(() {
+        if (quizBrain.isLast()) {
+          Alert(
+            context: context,
+            title: 'Finished!',
+            desc: 'You\'ve reached the end of the quiz.',
+          ).show();
+          quizBrain.reset();
+          scoreKeeper = [];
+        } else {
+          scoreKeeper
+              .add((quizBrain.getAnswer() == ans) ? correctAns : wrongAns);
+          quizBrain.nextQuestion();
+        }
+      });
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -37,7 +68,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                quizBrain.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -61,7 +92,7 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
-                //The user picked true.
+                checkAns(true);
               },
             ),
           ),
@@ -79,12 +110,12 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
-                //The user picked false.
+                checkAns(false);
               },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Row(children: scoreKeeper)
       ],
     );
   }
